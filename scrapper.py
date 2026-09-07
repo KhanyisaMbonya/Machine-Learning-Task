@@ -1,63 +1,85 @@
 #!/usr/bin/env python3
-from py_compile import main
 
 import requests
 from bs4 import BeautifulSoup
 
-url = "https://www.news24.com/news24/southafrica"
 
-headers = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/150.0.0.0 Safari/537.36"
-    ),
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Referer": "https://www.google.com/",
-    "Connection": "keep-alive"
-}
+def scrape_data():
+    """Retrieve and extract data from a simple webpage."""
 
-response = requests.get(url, headers=headers, timeout=10)
+    url = "https://example.com"
 
-print("Status code:", response.status_code)
-
-if response.status_code == 200:
+    response = requests.get(url, timeout=10)
+    response.raise_for_status()
 
     soup = BeautifulSoup(response.text, "html.parser")
 
-    print("\nSOUTH AFRICAN NEWS HEADLINES")
-    print("----------------------------")
+    title = soup.title.string if soup.title else "No title found"
 
-    links = soup.find_all("a")
+    return title
 
-    count = 0
-    seen = set()
 
-    for link in links:
+def train_simple_model():
+    """
+    Demonstrate a very simple machine learning concept.
 
-        text = link.get_text(" ", strip=True)
-        href = link.get("href", "")
+    The model learns the relationship between study hours and marks
+    using a simple linear regression formula.
+    """
 
-        if (
-            text
-            and 30 < len(text) < 150
-            and "/southafrica/" in href
-            and text not in seen
-        ):
-            print("-", text)
+    # Training data
+    study_hours = [1, 2, 3, 4, 5]
+    marks = [45, 50, 58, 65, 72]
 
-            seen.add(text)
-            count += 1
+    # Calculate averages
+    average_hours = sum(study_hours) / len(study_hours)
+    average_marks = sum(marks) / len(marks)
 
-        if count == 10:
-            break
+    # Calculate slope
+    numerator = sum(
+        (x - average_hours) * (y - average_marks)
+        for x, y in zip(study_hours, marks)
+    )
 
-    print("\nNumber of headlines found:", count)
+    denominator = sum(
+        (x - average_hours) ** 2
+        for x in study_hours
+    )
 
-else:
-    print("Could not access the website.")
-    print("Server response:", response.status_code)
+    slope = numerator / denominator
+
+    # Calculate intercept
+    intercept = average_marks - (slope * average_hours)
+
+    return slope, intercept
+
+
+def predict(hours, slope, intercept):
+    """Predict a student's mark based on study hours."""
+
+    return slope * hours + intercept
+
+
+def main():
+    print("Simple Machine Learning Example")
+    print("--------------------------------")
+
+    # Demonstrate web scraping
+    try:
+        webpage_title = scrape_data()
+        print(f"Webpage title: {webpage_title}")
+    except requests.RequestException as error:
+        print(f"Could not access webpage: {error}")
+
+    # Train the simple model
+    slope, intercept = train_simple_model()
+
+    # Make a prediction
+    study_hours = 6
+    predicted_mark = predict(study_hours, slope, intercept)
+
+    print(f"Study hours: {study_hours}")
+    print(f"Predicted mark: {predicted_mark:.2f}%")
 
 
 if __name__ == "__main__":
